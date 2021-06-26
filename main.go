@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	room := pickRoom()
-	mainloop(room)
+	selectedFile := pickFile()
+	mainloop(selectedFile)
 }
 
 // The structure in which we will keep the message we are working on. It contains the contrib ID (hash of all other info), its contents, the time at which it was sent, and the prior contrib.
@@ -72,9 +72,13 @@ func getHash(strinput string, chrono string) string {
 
 // Appends the contrib to the log, as well as prints it for debuggage purposes.
 func commit(info contrib, room string) {
-	pass := commandProcessing(info.contents)
+	var pass bool
+	if strings.HasPrefix(info.contents, "/") {
+		pass, info.contents = commandProcessing(info.contents)
+	} else {
+		pass = true
+	}
 	if pass {
-		info.contents = strings.TrimPrefix(info.contents, "/plain ")
 		file, _ := os.OpenFile(room, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600) // This works, for some reason. I have no idea what it's doing.
 
 		file.Write([]byte(fmt.Sprintf("ID %s\nPrev %s\nTime %s\nContents %s\n", info.id, info.prev, info.timestamp, info.contents)))
@@ -107,4 +111,3 @@ func mainloop(room string) {
 		commit(message, room)
 	}
 }
-
